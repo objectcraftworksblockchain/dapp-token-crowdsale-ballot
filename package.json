@@ -64,6 +64,7 @@
   },
   "dependencies": {
     "dotenv": "^2.0.0",
+    "gh-pages": "^1.1.0",
     "react": "^15.4.2",
     "react-bootstrap": "^0.32.1",
     "react-dom": "^15.6.2",
@@ -71,12 +72,15 @@
     "zeppelin-solidity": "^1.7.0"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build_webpack",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   },
+  "homepage": "https://objectcraftworks.github.io/dapp-token-crowdsale-ballot",
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.{js,jsx}"

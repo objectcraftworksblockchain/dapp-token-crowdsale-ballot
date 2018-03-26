@@ -30,7 +30,7 @@ module.exports = function(deployer,network, accounts) {
         var orgTokenInstance = await OrgToken.deployed();
   
     
-     var initialSupply = await orgTokenInstance.INITIAL_SUPPLY.call();
+     var initialSupply = await orgTokenInstance.totalSupply.call();
       return orgTokenInstance.approve(instance.address, initialSupply,{from:from});
   }).then(async function(){
     var orgTokenInstance = await OrgToken.deployed();

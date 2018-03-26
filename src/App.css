@@ -27,7 +27,7 @@ code {
 
 .container {
   box-sizing: border-box;
-  width: 100%;
+ 
   padding: 45px 20px;
 }
 
@@ -54,12 +54,14 @@ code {
 
 .navbar a {
   color: #fff;
+  font-size: 18px;
 }
 
 .navbar a:active,
 .navbar a:focus,
 .navbar a:hover {
   background: #233e5e;
+  
 }
 
 .navbar .pure-menu-heading {
@@ -74,4 +76,51 @@ code {
 .navbar .uport-logo {
   height: 16px;
   margin-right: 10px;
+}
+.proposal select {
+  height: 30px;
+  font-size: 12px;
+  line-height: 1.5;
+ 
+  
+}
+
+a.github {
+  font-family: 'Open Sans', sans-serif;
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.container {
+  padding-top: 80px;
+
+}
+@media (min-width:768px){
+.proposal label {
+ margin-right: 4px;
+ width:100px;
+ text-align: right;
+}
+.proposal .votes{
+  width:90px;
+}
+.proposal input {
+  border-radius:0px;
+}
+
+.proposal .form-inline .form-group {
+  margin-left:1px;
+  margin-right:1px;
+ 
+ }
+.proposal select {
+  border-radius: 5px 0px 5px 0px;
+  margin-left:1px;
+ margin-right:5px;
+}
+.proposal .btn-sm{
+  border-radius:  0px 5px 5px 0px;
+  margin-top:1px;
+}
+
 }

@@ -1,0 +1,27 @@
+   <div class="row">
+        <div class="col-lg-4">
+            <form class="form-horizontal" action="." method="GET" role="form">
+               
+                <div class="form-group">
+                    <label class="col-lg-2 control-label" for="id_current_case_count" data-placement="top" data-toggle="tooltip" title="How many cases have you seen?">Cases</label>
+                    <div class="col-lg-10">
+                        <div class="content row">
+                         
+                            <div class="col-xs-3"  style="padding-right: 5px;">
+                                <input class="form-control input-sm" id="id_case_count_uncertainty" min="0" name="case_count_uncertainty" type="number" />
+                            </div>
+                            <div class="col-xs-3">
+                                <select class="form-control select-sm" id="id_case_count_interval" name="case_count_interval ">
+                                    <option value="weekly">Account 1</option>
+                                    <option value="total">total</option>
+                                </select>
+                            </div>
+                             <button class="btn btn-default btn-sm" type="submit">Vote</button>
+                        </div>
+                    </div>
+                </div>
+               
+            </form>
+        </div>
+   
+    </div>
