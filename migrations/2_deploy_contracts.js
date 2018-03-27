@@ -8,7 +8,7 @@ module.exports = function(deployer,network, accounts) {
 
   const openingTime = Date.now()/1000|0 + 120;
   const closingTime = openingTime + (3600 * 24 * 7); // week
-  const tokenRate = new web3.BigNumber(10);
+  const tokenRate = new web3.BigNumber(1000);
   const wallet = accounts[0];
   const tokenWallet = accounts[0];
   const from = accounts[0];
