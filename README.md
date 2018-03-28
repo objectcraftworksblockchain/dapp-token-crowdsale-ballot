@@ -9,6 +9,8 @@ This solution consists of solidity contracts for token sale and  token holder vo
 
  Contracts are deployed on Ropsten and the dapp is [here](http://www,objectcraftworks.com/dapp-token-crowdsale-ballot). You can also download the code and run it locally.
  
+
+
 To start truffle node:
  ```sh
 $  npm install
@@ -34,6 +36,7 @@ $  npm start
   - Data type transformations
   - Event tests
 
+![Tests](test.png)
 ### Tech
   - [Truffle Framework](http://truffleframework.com/)
     - [react box](http://truffleframework.com/boxes/react)
