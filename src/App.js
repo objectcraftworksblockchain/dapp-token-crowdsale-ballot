@@ -6,7 +6,7 @@ import TimedOrgBallotContract from '../build/contracts/TimedOrgBallot.json'
 import 'babel-polyfill';
 import getWeb3 from './utils/getWeb3'
 import Select from 'react-select';
-
+import ReactLoading from 'react-loading'
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -22,12 +22,14 @@ class ProposalVoting extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      gasPrice:null,
       votesReceivedByProposal: null,
       voteTransactionObject: [],
       tokenDecimalMultiplier: 10 ** 18,
-      votes:''
+      votes:'',
+      showProgress:false
     };
-     
+    
     this.orgBallotInstance = props.orgBallotInstance;
     this.accounts = props.accounts;
     this.web3 = props.web3;
@@ -42,6 +44,10 @@ class ProposalVoting extends React.Component {
         votesReceivedByProposal: balance.dividedBy(self.state.tokenDecimalMultiplier)
         .toFormat(0) })
     });
+    this.web3.eth.getGasPrice(function(e,g)
+    { self.setState({ 
+      gasPrice:g
+    });});
   }
 
 
@@ -56,7 +62,8 @@ class ProposalVoting extends React.Component {
 
     event.preventDefault();
     var self = this;
-
+    self.setState({showProgress:true}); 
+   
     this.orgBallotInstance.vote(self.web3.fromAscii(self.props.proposal),
       self.web3.toBigNumber(self.state.votes).mul(10 ** 18),
       { from: self.props.account.value, gas: 8500000 })
@@ -75,36 +82,41 @@ class ProposalVoting extends React.Component {
           .votesReceivedByProposals.call(self.web3.fromAscii(self.props.proposal));
         console.log(votesReceived);
         self.setState({
+          showProgress:false,
           votes: '',
           votesReceivedByProposal: votesReceived.dividedBy(self.state.tokenDecimalMultiplier).toFormat(2)
         })
+       
       });
-
-
-
+    
   }
 
 
   render() {
     var transactionFeeDisplay = (<div />);
-    var gasPrice = this.web3.eth.gasPrice;
     var lastTransaction = this.state.voteTransactionObject[0];
-
-    if (!!lastTransaction) {
-      var transactionFee = lastTransaction.receipt.gasUsed * gasPrice;
+    var progress="";
+      if(!!this.state.showProgress){
+          progress  = <ReactLoading type="cubes" color="orange"/>
+      }
+    if (!!lastTransaction&& !! this.state.gasPrice) {
+      var transactionFee = lastTransaction.receipt.gasUsed * this.state.gasPrice;
       transactionFeeDisplay = (<div><small>Transaction Fee(Gas cost): {this.web3.fromWei(transactionFee, 'ether')} ether.
        ${(this.web3.fromWei(transactionFee, 'ether') * 531).toFixed(2)} at 1eth=$530</small>
       </div>)
+      
     }
     return (
       <div className="list-group-item">
         <div className="list-group-item-heading">
+    
           <span className="badge pull-right">
             <small>Votes: {this.state.votesReceivedByProposal} </small></span>
+            
         </div>
+       
         <form className="form-inline proposal" onSubmit={this.handleSubmit}>
-        
-          <div className="form-group">
+             <div className="form-group">
             <label className="control-label proposal-label">{this.props.proposal}</label>
 
             <input type="number" value={this.state.votes}
@@ -115,7 +127,8 @@ class ProposalVoting extends React.Component {
           <button type="submit" value="submit" className="btn  btn-default btn-sm">Vote</button>
         </form>
         <div>{transactionFeeDisplay}</div>
-
+      
+    
       </div>
     );
   }
@@ -147,7 +160,7 @@ function Proposals(props) {
     var rows = (<tr></tr>);
     if (!!props.events && !!props.events.map) {
       rows = props.events.map((evt, index) => {
-        return (<tr key={evt.blockNumber}><td>{evt.blockNumber}</td><td>{"Account " +
+        return (<tr key={evt.blockHash + index}><td>{evt.blockNumber}</td><td>{"Account " +
           props.accounts.findIndex(function (a) { return a === evt.args.to })}</td>
           <td>{evt.args.value.toString()}</td></tr>);
       });
@@ -156,7 +169,7 @@ function Proposals(props) {
       <Panel>
         <Panel.Heading>Transfer Events</Panel.Heading>
         <Table striped bordered condensed responsive>
-          <tbody><tr><th>Block#</th><th>Account</th><th>Tokens(10**18)</th></tr>
+          <tbody><tr><th>Block#</th><th>Account</th><th>Tokens<small>(in decimals 10**18)</small></th></tr>
             {rows}
           </tbody>
         </Table>
@@ -174,7 +187,7 @@ function Proposals(props) {
       const converterfix = function (input) { return props.converter(input).replace(/\u0000/g, '') }
 
       rows = events.map((evt, index) =>
-        <tr key={evt.blockNumber}><td>{evt.blockNumber}</td>
+        <tr key={evt.blockHash +index}><td>{evt.blockNumber}</td>
           <td>{converterfix(evt.args.proposal)}</td><td>{evt.args.votes.toString()}</td></tr>
       );
     }
@@ -183,7 +196,7 @@ function Proposals(props) {
       <Panel>
         <Panel.Heading>VotesCasted Events</Panel.Heading>
         <Table striped bordered condensed responsive>
-          <tbody><tr><th>Block#</th><th>Proposal</th><th>Votes(10**18)</th></tr>
+          <tbody><tr><th>Block#</th><th>Proposal</th><th>Votes<small>(in decimals 10**18)</small></th></tr>
             {rows}
           </tbody>
         </Table>
@@ -302,6 +315,9 @@ function Proposals(props) {
 
       getWeb3
         .then(results => {
+       
+
+         
           this.setState({
             web3: results.web3,
             accounts: results.web3.eth.accounts,
@@ -355,6 +371,7 @@ function Proposals(props) {
 
         this.transfer = this.orgTokenInstance.Transfer();
         this.transfer.watch((err, response) => {
+          console.log("new event" + response.blockNumber);
           var token = self.state.transferEvents;
           if (token == null)
             token = [response];
@@ -366,7 +383,14 @@ function Proposals(props) {
             transferEvents: token
           });
         });
-
+        this.state.web3.eth.getGasPrice(function(e,g)
+        { self.setState({ 
+          gasPrice:g
+        });});
+/*
+self.setState({
+  gasPrice: this.state.web3.eth.gasPrice
+});*/
         this.votesCasted = this.orgBallotInstance.VotesCasted();
         this.votesCasted.watch((err, response) => {
           var ballot = self.state.votesCastedEvents;
@@ -394,6 +418,7 @@ function Proposals(props) {
 
         console.log("proposals at init " + proposals);
 
+        
 
         this.setState({
           orgTokenInstance: this.orgTokenInstance,
@@ -418,10 +443,9 @@ function Proposals(props) {
 
       var lastTransaction = this.state.buyTokenTransactionLog[0];
 
-      if (!!lastTransaction) {
-        var gasPrice = this.state.web3.eth.gasPrice;
-
-        var transactionFee = lastTransaction.receipt.gasUsed * gasPrice;
+      if (!!lastTransaction && !!this.state.gasPrice) {
+       
+        var transactionFee = lastTransaction.receipt.gasUsed * this.state.gasPrice;
 
         transactionFeeDisplay = (<div><small>Transaction Fee(Gas cost): {this.state.web3.fromWei(transactionFee, 'ether')} ether.
         ${(this.state.web3.fromWei(transactionFee, 'ether') * 531).toFixed(2)} at 1eth=$530</small>
@@ -438,29 +462,53 @@ function Proposals(props) {
           </nav>
 
           <main className="container">
-            <div className="row">
+          <label>Play with contracts: </label>
+               
+            <div className="pure-g">
+              <div className="pure-u-1 pure-u-md-1-2">
+                <div className="play l-box">
+               <div className="panel panel-default">
 
-              <div className="col-sm-12">
-                <p>
-                  This dapp implements the org pattern that goes to crowdsale and offers token holder voting.
-                  It connects to three contracts  token, crowdsale and token holder voting which are deployed on the test network Ropsten.
-                  Token and Crowdsale contracts are using Zeppelin contracts.
-                   TDD tests explore ethereum and solidity contract development concepts through the web3 api.</p>
-
-                <p>
-                  To see in action, you need to have MetaMask or a local running client connected to the test network Ropsten.
-                  You can also get the source code and run locally as well.
-                 </p>
-                <p>
-                  You can start with this app by buying some tokens. You will see the tokens being added to the account.
-                  You can vote using these tokens. Events and Gas Cost are displayed.
-                  To simulate multiple token buyers, Account 1 and Account 2 are used.
-                  Account 0 is used as the wallet that receives the crowdsale proceeds.
-                  </p>
+                  <div className="panel-heading">Buy tokens</div>
+                         <div className="panel-body">
+                         and watch
+                            <ol>
+                             <li>
+                             Ether going from your wallet to crowdsale wallet </li>
+                            <li>
+                             Tokens from tokenwallet to your wallet</li>
+                            <li> A Tranfer event fired by OrgToken contract</li>
+                           
+                       </ol>
+                      </div>
+                   </div>
 
               </div>
-            </div>
-            <div className="pure-g">
+              </div>
+              <div className="pure-u-1 pure-u-md-1-2">
+                <div className=" play l-box">
+               
+               
+                 <div className="panel panel-default">
+                  <div className="panel-heading">Vote</div>
+                         <div className="panel-body">
+                         and watch
+                            <ol>
+                             <li>
+                             Votes received by your preferred locations</li>
+                             <li>A VotesCasted event fired by OrgBallot</li>
+                           
+                       </ol>
+                      </div>
+                   </div>
+
+              </div>
+               
+                     
+                 
+              </div>
+             
+
               <div className="pure-u-1 pure-u-md-1-2">
                 <div className="l-box">
                   <h3>HD Wallet</h3>
@@ -474,11 +522,11 @@ function Proposals(props) {
                 <div className="l-box">
                   <h3>CrowdSale<span className="small pull-right">Tokens for sale:
                  {this.state.remainingTokens.toLocaleString()} {this.tokenSymbol}</span></h3>
+                  
                   <p>Crowdsale Wallet: {this.state.crowdSaleWalletBalance} ether </p>
                   <button onClick={(e) => this.buyTokens(e)}>Buy 10 tokens</button>
                   &nbsp;
-                <p><small>1 ETH gets you {this.tokenRate} ORG tokens ( 0.01 ETH = 10 ORG ).</small></p>
-
+                  <p><small>1 ETH gets you {this.tokenRate} ORG tokens ( 0.01 ETH = 10 ORG ).</small></p>
                   <div>{transactionFeeDisplay}</div>
                 </div>
               </div>
@@ -520,33 +568,13 @@ function Proposals(props) {
 
             </div>
             <div>
-              <h5>To Do:</h5>
-              <ul className="list-group">
-                <li className="list-group-item">
-                  Handle Errors and display errors in UI.
-                  Figure out why promises are not receiving VM reverts.
-                </li>
-                <li className="list-group-item">
-                  Handling token decimals in events display
-               </li>
-                <li className="list-group-item">
-                  Use Drizzle.
-               </li>
+            <div className="row">
 
-                <li className="list-group-item">
-                  Switch to TimedOrgBallot to allow election timings.
-               </li>
-                <li className="list-group-item">
-                  Finalize Crowdsale and Ballot contracts.
-               </li>
-                <li className="list-group-item">
-                  Explore: allowing multiple elections - A good use case of Factory Pattern.
-               </li>
-                <li className="list-group-item">
-                  Update account balance on events (of the transactions outside the dapp)
-               </li>
-
-              </ul>
+<div className="col-sm-12">
+ <p><small>With Truffle, things happen fast. But when used with MetaMask, it will take time 
+      and there are no visual indicators at the moment. You will have to just wait. Not all interactions with Metamask are handled.</small></p>
+</div>
+</div>
             </div>
           </main>
         </div>

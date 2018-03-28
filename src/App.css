@@ -18,6 +18,13 @@ h1, h2, h3 {
   box-sizing: border-box;
   border:0.01em solid whitesmoke;
 }
+
+.play.l-box {
+  margin:0.5em;
+  padding:0.5em;
+   border:0px;
+}    
+
 code {
   display: block;
   margin: 20px 0 15px 0;
