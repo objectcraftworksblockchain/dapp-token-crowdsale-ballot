@@ -207,7 +207,7 @@ function Proposals(props) {
   }
   function EthereumAddresses(props) {
     if (props.accounts == null) {
-      return (<p> web3 provider not found</p>);
+      return (<p> web3 provider not found. You need MetaMask.</p>);
     }
 
     const addresses = props.accounts;
