@@ -4,7 +4,7 @@ This POC explores solidity contract development concepts , and use of zeppelin c
 
 This solution consists of solidity contracts for token sale and  token holder voting and a dapp to interact with these contracts.
  
-Contracts are deployed on Ropsten and the dapp is [here](http://www,objectcraftworks.com/dapp-token-crowdsale-ballot). You can also download the code and run it locally.
+Contracts are deployed on Ropsten and the dapp is [here](http://www.objectcraftworks.com/dapp-token-crowdsale-ballot). You can also download the code and run it locally.
 
 Here is a screenshot of the dapp:  
 ![Dapps](dapp_screenshot.png)
